@@ -5,6 +5,9 @@
 #include "SafetyManager.h"
 #include "Config.h"
 
+// Function declarations
+void printStatus();
+
 // Global objects
 BluetoothController btController;
 MotorController motorController;

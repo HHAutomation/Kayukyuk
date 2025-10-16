@@ -14,22 +14,7 @@ void BluetoothController::begin() {
     Serial.printf("Bluetooth device '%s' is ready to pair\n", BT_DEVICE_NAME);
     Serial.printf("Use PIN: %s\n", BT_PIN);
     
-    // Set up callbacks
-    SerialBT.onConnect([this](uint32_t remoteAddress) {
-        Serial.println("Bluetooth device connected!");
-        this->deviceConnected = true;
-        this->controllerData.connected = true;
-    });
-    
-    SerialBT.onDisconnect([this](uint32_t remoteAddress) {
-        Serial.println("Bluetooth device disconnected!");
-        this->deviceConnected = false;
-        this->controllerData.connected = false;
-        // Reset controller data on disconnect
-        this->controllerData.joystickY = 0;
-        this->controllerData.joystickX = 0;
-        this->controllerData.emergencyStop = false;
-    });
+    Serial.println("Bluetooth initialized. Use your controller to connect.");
 }
 
 void BluetoothController::update() {
@@ -40,12 +25,19 @@ void BluetoothController::update() {
         if (input.length() > 0) {
             parseControllerInput(input);
             lastDataReceived = millis();
+            if (!deviceConnected) {
+                deviceConnected = true;
+                controllerData.connected = true;
+                Serial.println("Bluetooth device connected!");
+            }
         }
     }
     
     // Check for connection timeout
     if (deviceConnected && (millis() - lastDataReceived > CONTROLLER_TIMEOUT)) {
         Serial.println("Controller timeout - stopping motor");
+        deviceConnected = false;
+        controllerData.connected = false;
         controllerData.joystickY = 0;
         controllerData.joystickX = 0;
         controllerData.emergencyStop = true;
